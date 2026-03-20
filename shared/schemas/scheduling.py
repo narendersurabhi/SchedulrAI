@@ -29,6 +29,12 @@ class BookingStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class ParserDisposition(str, Enum):
+    PARSED = "parsed"
+    NEEDS_CLARIFICATION = "needs_clarification"
+    UNSUPPORTED = "unsupported"
+
+
 @dataclass(slots=True)
 class Attendee(SchemaMixin):
     name: str
@@ -111,6 +117,34 @@ class SchedulingRequest(SchemaMixin):
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "SchedulingRequest":
+        return cls(**payload)
+
+
+@dataclass(slots=True)
+class IntentParseResult(SchemaMixin):
+    raw_text: str
+    disposition: ParserDisposition | str
+    confidence: float
+    request: SchedulingRequest | None = None
+    clarification_question: str | None = None
+    missing_fields: list[str] = field(default_factory=list)
+    parser_version: str = "phase3-narrow"
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        if isinstance(self.disposition, str):
+            self.disposition = ParserDisposition(self.disposition)
+        if isinstance(self.request, dict):
+            self.request = SchedulingRequest.from_dict(self.request)
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError("confidence must be between 0.0 and 1.0")
+        if self.disposition is ParserDisposition.PARSED and self.request is None:
+            raise ValueError("parsed results must include a scheduling request")
+        if self.disposition is ParserDisposition.NEEDS_CLARIFICATION and not self.clarification_question:
+            raise ValueError("clarification results must include a clarification question")
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "IntentParseResult":
         return cls(**payload)
 
 
