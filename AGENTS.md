@@ -1,15 +1,15 @@
 # Repository Agent Notes
 
 ## Current Status
-- Repository now contains the first two implementation slices for SchedulrAI: deterministic scheduling plus safe mock execution.
+- Repository now contains the first three implementation slices for SchedulrAI: deterministic scheduling, safe mock execution, and a narrow typed intent-parsing service.
 - Primary code artifacts added for the current scope:
-  - `shared/schemas/scheduling.py` for shared scheduling, booking, execution, and audit contracts
+  - `shared/schemas/scheduling.py` for shared scheduling, parsing, booking, execution, and audit contracts
   - `services/calendar/provider.py` for the provider interface and mock calendar implementation with create/update/cancel support
   - `services/scheduler/core.py` for deterministic candidate generation and ranking
-  - `services/intent_parser/happy_path.py` for the narrow happy-path natural language parser
+  - `services/intent_parser/happy_path.py` for the narrow parser service, validated happy path, confidence scoring, and clarification handling
   - `services/execution/core.py` for dry-run previews, idempotent execution, and audit logging
   - `apps/cli/demo.py` for an end-to-end CLI demo that parses, ranks, previews, and books the top slot
-- Supporting fixtures, evals, tests, and execution-board documentation now anchor both Phase 1 and Phase 2 delivery milestones.
+- Supporting fixtures, evals, tests, and execution-board documentation now anchor Phase 1, Phase 2, and Phase 3 delivery milestones.
 - The root `README.md` documents the repository purpose, current thin-slice scope, setup, demo flow, project layout, and supporting docs.
 
 ## Change Log
@@ -30,6 +30,10 @@
 - 2026-03-20: Updated `apps/cli/demo.py` to emit a dry-run preview, execute the booking through the executor, and print audit-log output.
 - 2026-03-20: Added `tests/unit/test_execution.py` to cover preview behavior, audited create/update/cancel flows, and retry-safe idempotent writes.
 - 2026-03-20: Added `docs/phase-2-execution-board.md` and refreshed `README.md` to document the new safe-execution slice.
+- 2026-03-20: Expanded `shared/schemas/scheduling.py` and `shared/schemas/__init__.py` with parser-result contracts for parsed, clarification-needed, and unsupported outcomes.
+- 2026-03-20: Upgraded `services/intent_parser/happy_path.py` into a narrow parser service that adds confidence scores, clarification handling, and validated structured output while preserving the original happy path.
+- 2026-03-20: Updated `apps/cli/demo.py` to emit parser-result metadata before continuing into scheduling and execution.
+- 2026-03-20: Added parsing eval fixtures under `evals/parsing/`, parser regression tests in `tests/unit/test_intent_parser.py`, `docs/phase-3-execution-board.md`, and refreshed `README.md` to document the Phase 3 parser slice.
 
 ## Guidance for Future Agents
 - Read this file before making changes.
@@ -38,6 +42,7 @@
 - Treat `docs/implementation-roadmap.md` as the canonical execution plan for milestones, issue slicing, and weekly delivery sequencing.
 - Treat `docs/phase-1-execution-board.md` as the canonical scope freeze for the initial deterministic scheduling slice.
 - Treat `docs/phase-2-execution-board.md` as the canonical scope freeze for the safe mock execution slice.
+- Treat `docs/phase-3-execution-board.md` as the canonical scope freeze for the parser-confidence and clarification slice.
 - Prefer extending the shared contracts and fixtures before adding new integrations or orchestration layers.
 - Keep the current slice narrow until the mocked demo path and tests remain stable.
 

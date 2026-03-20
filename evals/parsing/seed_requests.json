@@ -1,0 +1,22 @@
+[
+  {
+    "text": "Schedule 30 minutes with Sarah next Tuesday afternoon",
+    "expected_disposition": "parsed",
+    "expected_missing_fields": []
+  },
+  {
+    "text": "Schedule with Sarah next Tuesday",
+    "expected_disposition": "needs_clarification",
+    "expected_missing_fields": ["duration_minutes", "time_of_day"]
+  },
+  {
+    "text": "Schedule 30 minutes with Sarah next Tuesday evening",
+    "expected_disposition": "needs_clarification",
+    "expected_missing_fields": ["time_of_day"]
+  },
+  {
+    "text": "Cancel Sarah tomorrow",
+    "expected_disposition": "unsupported",
+    "expected_missing_fields": []
+  }
+]

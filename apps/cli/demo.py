@@ -5,10 +5,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from shared.schemas import Attendee, AvailabilityWindow, BookingRequest
+from shared.schemas import Attendee, AvailabilityWindow, BookingRequest, ParserDisposition
 from services.calendar.provider import MockCalendarProvider
 from services.execution.core import BookingExecutor, InMemoryExecutionAuditLog, build_idempotency_key
-from services.intent_parser.happy_path import parse_happy_path_request
+from services.intent_parser.happy_path import NarrowIntentParser
 from services.scheduler.core import DeterministicScheduler
 
 FIXTURE_PATH = Path("tests/fixtures/mock_availability.json")
@@ -24,8 +24,18 @@ def main() -> int:
     reference_dt = datetime.fromisoformat("2026-03-19T09:00:00-04:00")
     provider = MockCalendarProvider(_load_availability())
     executor = BookingExecutor(provider=provider, audit_log=InMemoryExecutionAuditLog())
+    parser = NarrowIntentParser()
 
-    request = parse_happy_path_request(request_text, organizer=organizer, reference_dt=reference_dt)
+    parse_result = parser.parse(request_text, organizer=organizer, reference_dt=reference_dt)
+    output: dict[str, object] = {
+        "parse_result": parse_result.model_dump(mode="json"),
+    }
+
+    if parse_result.disposition is not ParserDisposition.PARSED or parse_result.request is None:
+        print(json.dumps(output, indent=2))
+        return 1
+
+    request = parse_result.request
     scheduler = DeterministicScheduler(provider)
     decision = scheduler.recommend_slots(request)
 
@@ -46,13 +56,15 @@ def main() -> int:
     preview = executor.preview_create(booking_request)
     booking_outcome = executor.create_booking(booking_request)
 
-    output = {
-        "request": request.model_dump(mode="json"),
-        "decision": decision.model_dump(mode="json"),
-        "preview": preview.model_dump(mode="json"),
-        "booking_outcome": booking_outcome.model_dump(mode="json"),
-        "audit_log": [entry.model_dump(mode="json") for entry in executor.audit_log.list_entries()],
-    }
+    output.update(
+        {
+            "request": request.model_dump(mode="json"),
+            "decision": decision.model_dump(mode="json"),
+            "preview": preview.model_dump(mode="json"),
+            "booking_outcome": booking_outcome.model_dump(mode="json"),
+            "audit_log": [entry.model_dump(mode="json") for entry in executor.audit_log.list_entries()],
+        }
+    )
     print(json.dumps(output, indent=2))
     return 0
 
