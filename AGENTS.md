@@ -9,6 +9,7 @@
   - `services/intent_parser/happy_path.py` for the narrow happy-path natural language parser
   - `apps/cli/demo.py` for an end-to-end CLI demo that parses, ranks, and books the top slot
 - Supporting fixtures, evals, tests, and execution-board documentation were added to anchor Phase 1 execution.
+- A root `README.md` now documents the repository purpose, current thin-slice scope, setup, demo flow, project layout, and supporting docs.
 
 ## Change Log
 - 2026-03-19: Added `docs/implementation-roadmap.md`, a phase-by-phase implementation plan covering milestones, repo issue backlog, module boundaries, evaluation gates, and week-by-week deliverables.
@@ -21,6 +22,7 @@
 - 2026-03-19: Added `services/intent_parser/happy_path.py` with a narrow regex-based parser for the first frozen scenario: “Schedule 30 minutes with Sarah next Tuesday afternoon.”
 - 2026-03-19: Added `apps/cli/demo.py` for a demoable parse → schedule → book flow using the mock provider.
 - 2026-03-19: Added fixture payloads under `tests/fixtures/`, unit tests under `tests/unit/`, scheduling evals under `evals/scheduling/`, and `docs/phase-1-execution-board.md` to freeze the first implementation milestone.
+- 2026-03-20: Added `README.md` with a repository overview, current-scope summary, quick-start steps, architecture-oriented module guide, and links to the canonical planning/design docs.
 
 ## Guidance for Future Agents
 - Read this file before making changes.
