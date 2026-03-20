@@ -22,6 +22,13 @@ class AttendeeRole(str, Enum):
     OPTIONAL = "optional"
 
 
+class BookingStatus(str, Enum):
+    PREVIEW = "preview"
+    CONFIRMED = "confirmed"
+    UPDATED = "updated"
+    CANCELLED = "cancelled"
+
+
 @dataclass(slots=True)
 class Attendee(SchemaMixin):
     name: str
@@ -164,6 +171,7 @@ class BookingRequest(SchemaMixin):
     organizer_email: str
     attendee_emails: list[str]
     idempotency_key: str
+    description: str = ""
 
     def __post_init__(self) -> None:
         self.slot = _coerce_candidate_slot(self.slot)
@@ -174,14 +182,96 @@ class BookingRequest(SchemaMixin):
 
 
 @dataclass(slots=True)
+class UpdateBookingRequest(SchemaMixin):
+    request_id: str
+    booking_id: str
+    provider_event_id: str
+    title: str
+    slot: CandidateSlot
+    organizer_email: str
+    attendee_emails: list[str]
+    idempotency_key: str
+    description: str = ""
+
+    def __post_init__(self) -> None:
+        self.slot = _coerce_candidate_slot(self.slot)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "UpdateBookingRequest":
+        return cls(**payload)
+
+
+@dataclass(slots=True)
+class CancelBookingRequest(SchemaMixin):
+    request_id: str
+    booking_id: str
+    provider_event_id: str
+    organizer_email: str
+    attendee_emails: list[str]
+    idempotency_key: str
+    reason: str = ""
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "CancelBookingRequest":
+        return cls(**payload)
+
+
+@dataclass(slots=True)
 class BookingResult(SchemaMixin):
     booking_id: str
-    status: str
+    status: BookingStatus | str
     provider_event_id: str | None = None
     message: str = ""
+    slot: CandidateSlot | None = None
+
+    def __post_init__(self) -> None:
+        if isinstance(self.status, str):
+            self.status = BookingStatus(self.status)
+        if self.slot is not None:
+            self.slot = _coerce_candidate_slot(self.slot)
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "BookingResult":
+        return cls(**payload)
+
+
+@dataclass(slots=True)
+class ExecutionAuditEntry(SchemaMixin):
+    audit_id: str
+    request_id: str
+    action: str
+    idempotency_key: str
+    status: BookingStatus | str
+    dry_run: bool
+    created_at: datetime
+    provider_event_id: str | None = None
+    booking_id: str | None = None
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        self.created_at = _parse_datetime(self.created_at)
+        if isinstance(self.status, str):
+            self.status = BookingStatus(self.status)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "ExecutionAuditEntry":
+        return cls(**payload)
+
+
+@dataclass(slots=True)
+class ExecutionOutcome(SchemaMixin):
+    action: str
+    result: BookingResult
+    audit_entry: ExecutionAuditEntry
+
+    def __post_init__(self) -> None:
+        if isinstance(self.result, dict):
+            self.result = BookingResult.from_dict(self.result)
+        if isinstance(self.audit_entry, dict):
+            self.audit_entry = ExecutionAuditEntry.from_dict(self.audit_entry)
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "ExecutionOutcome":
         return cls(**payload)
 
 
