@@ -1,0 +1,17 @@
+[
+  {
+    "case_id": "sched-eval-001",
+    "description": "Happy path scheduling request for next Tuesday afternoon with one attendee",
+    "input_request_fixture": "tests/fixtures/scheduling_request.json",
+    "availability_fixture": "tests/fixtures/mock_availability.json",
+    "expected_top_slot_start": "2026-03-24T14:00:00-04:00",
+    "expected_reason_codes": ["works_for_all_attendees", "preferred_time_window_bonus"]
+  },
+  {
+    "case_id": "sched-eval-002",
+    "description": "Conflict filtering should reject the organizer's 15:00 slot",
+    "input_request_fixture": "tests/fixtures/scheduling_request.json",
+    "availability_fixture": "tests/fixtures/mock_availability.json",
+    "expected_rejected_reason_code": "conflicts_with_existing_event"
+  }
+]
